@@ -181,5 +181,5 @@ def page():
             st.error(f"Error: {e}")
 
 # Entry point for Streamlit multi-page app
-if __name__ == "__main__":
+if __name__ == "__page__":
     page()
