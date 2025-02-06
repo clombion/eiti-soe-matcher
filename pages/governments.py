@@ -5,11 +5,15 @@ from fuzzywuzzy import process
 import unidecode
 from urllib.request import Request, urlopen
 
+
 # Function to convert the Google Sheets into a CSV link
 def convert_to_csv_url(view_url):
+    # Extract file ID and gid
     file_id = view_url.split('/')[5]  # Extract file ID from URL
     gid = view_url.split('gid=')[-1]  # Extract gid parameter
+    # Build export URL
     return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv&gid={gid}"
+
 
 # Function to load the remote dataset and filter by country
 @st.cache_data
@@ -24,23 +28,28 @@ def load_remote_dataset(country):
     unique_governments = filtered_df.drop_duplicates(subset=['eiti_id_government'])
     return unique_governments
 
+
 # Function to generate UUID4
 def generate_uuid():
     return str(uuid.uuid4())
 
+
 # Function to preprocess text (convert to uppercase and remove diacritics)
 def preprocess_text(text):
     return unidecode.unidecode(text).upper()
+
 
 # Function to preprocess the new data
 def preprocess_dataset(df):
     df['Government entity'] = df['Government entity'].apply(preprocess_text)
     return df
 
+
 # Function to get potential matches using fuzzy matching
 def get_potential_matches(unmatched_series, remote_column):
     potential_matches = unmatched_series.apply(lambda x: process.extractOne(x, remote_column)[0])
     return potential_matches
+
 
 # Function to display unmatched entities with potential matches
 def display_unmatched(unmatched_df, remote_df, entity_type, remote_column):
@@ -54,6 +63,7 @@ def display_unmatched(unmatched_df, remote_df, entity_type, remote_column):
         if unmatched_df.at[index, 'Potential_Match'] != 'No potential match':
             unmatched_df.at[index, 'EITI ID'] = remote_df[remote_df[remote_column] == unmatched_df.at[index, 'Potential_Match']]['eiti_id_government'].values[0]
     st.dataframe(unmatched_df)
+
 
 # Function to validate and finalize matching
 def validate_matching(df, gov_matches, unmatched_governments):
@@ -74,6 +84,7 @@ def page():
 
     # SECTION 1: Input Google Sheet URL
     sheet_url = st.text_input("Paste your Google Sheet URL for 'Part 4 - Government revenues:")
+
     if sheet_url:
         try:
             # create the CSV url
